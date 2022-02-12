@@ -10,9 +10,9 @@ type PairsController struct {
 }
 
 func (c *PairsController) Register() {
-	// argsTypeTokenX := c.GetString("token_x")
-	// argsTypeTokenY := c.GetString("token_y")
-	services.DoPairsRegister()
+	tokenX := c.GetString("token_x")
+	tokenY := c.GetString("token_y")
+	services.DoPairsRegister(tokenX, tokenY)
 }
 
 

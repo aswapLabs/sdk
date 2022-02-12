@@ -2,7 +2,7 @@ package services;
 
 import (
 	"fmt"
-	// "io/ioutil"
+	"strings"
 	"context"
 	"encoding/hex"
 	Cli "github.com/starcoinorg/starcoin-go/client"
@@ -16,7 +16,7 @@ import (
 
 const DEFAULT_MAX_GAS_AMOUNT = 10000000
 
-func DoPairsRegister() {
+func DoPairsRegister(tokenX, tokenY string) {
 
 	ctx := context.Background()
 
@@ -49,26 +49,13 @@ func DoPairsRegister() {
 		"Router02",
 	}
 
-
-	coinType1 := types.StructTag{
-		Address: *contractAddr,
-		Module:  types.Identifier("Token1"),
-		Name:    types.Identifier("Token1"),
-	}
-
-	coinType2 := types.StructTag{
-		Address: *contractAddr,
-		Module:  types.Identifier("Token2"),
-		Name:    types.Identifier("Token2"),
-	}
-
-	tg1 := types.TypeTag__Struct{Value: coinType1}
-	tg2 := types.TypeTag__Struct{Value: coinType2}
+	tg1 := getTypeTag(tokenX)
+	tg2 := getTypeTag(tokenY)
 
 	scriptFunction := types.ScriptFunction{
 		moduleId,
 		"create_pair",
-		[]types.TypeTag{&tg1, &tg2},
+		[]types.TypeTag{tg1, tg2},
 		[][]byte{},
 	}
 
@@ -114,6 +101,20 @@ func DoPairsRegister() {
 	
 }
 
+func getTypeTag(token string) *types.TypeTag__Struct {
+	tokenArray := strings.Split(token, "::")
+
+	tokenAddr, _ := types.ToAccountAddress(tokenArray[0])
+
+
+	coinType := types.StructTag{
+		Address: *tokenAddr,
+		Module:  types.Identifier(tokenArray[1]),
+		Name:    types.Identifier(tokenArray[2]),
+	}
+
+	return &types.TypeTag__Struct{Value: coinType}
+}
 
 
 
