@@ -35,7 +35,7 @@ func DoPairsRegister(tokenX, tokenY string) {
 	
 	
 
-	privateKeyString := "97822d601cb540ab0920431bf4c808d7dd66cc1057935436ea7688bd83b6942e"
+	privateKeyString := ""
 	privateKeyBytes, _ := hex.DecodeString(privateKeyString)
 	privateKey := types.Ed25519PrivateKey(privateKeyBytes)
 
