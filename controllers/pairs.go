@@ -12,7 +12,11 @@ type PairsController struct {
 func (c *PairsController) Register() {
 	tokenX := c.GetString("token_x")
 	tokenY := c.GetString("token_y")
-	services.DoPairsRegister(tokenX, tokenY)
+	network := c.GetString("network")
+	services.DoPairsRegister(tokenX, tokenY, network)
+
+	c.Data["json"] = true
+    c.ServeJSON()
 }
 
 

@@ -16,12 +16,12 @@ import (
 
 const DEFAULT_MAX_GAS_AMOUNT = 10000000
 
-func DoPairsRegister(tokenX, tokenY string) {
+func DoPairsRegister(tokenX, tokenY, network string) {
 
 	ctx := context.Background()
 
 	url := beego.AppConfig.DefaultString(
-		"Local::rpc", 
+		network + "::rpc", 
 		"https://barnard-seed.starcoin.org",
 	) 
 	
