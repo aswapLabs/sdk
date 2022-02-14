@@ -36,7 +36,7 @@ func DoPairsRegister(tokenX, tokenY, network string) error {
 	
 	
 
-	privateKeyString := "97822d601cb540ab0920431bf4c808d7dd66cc1057935436ea7688bd83b6942e"
+	privateKeyString := ""
 	privateKeyBytes, err := hex.DecodeString(privateKeyString)
 	if err != nil {
 		return err
