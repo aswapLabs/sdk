@@ -7,5 +7,5 @@ import (
 
 func init() {
     beego.Router("/", &controllers.MainController{})
-    beego.Router("/api/pairs/register", &controllers.PairsController{},"post:Register")
+    beego.Router("/api/pairs/register", &controllers.PairsController{},"get:Register")
 }
