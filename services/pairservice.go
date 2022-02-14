@@ -2,6 +2,7 @@ package services;
 
 import (
 	"fmt"
+	"time"
 	"strings"
 	"context"
 	"encoding/hex"
@@ -16,7 +17,7 @@ import (
 
 const DEFAULT_MAX_GAS_AMOUNT = 10000000
 
-func DoPairsRegister(tokenX, tokenY, network string) {
+func DoPairsRegister(tokenX, tokenY, network string) error {
 
 	ctx := context.Background()
 
@@ -35,13 +36,24 @@ func DoPairsRegister(tokenX, tokenY, network string) {
 	
 	
 
-	privateKeyString := ""
-	privateKeyBytes, _ := hex.DecodeString(privateKeyString)
+	privateKeyString := "97822d601cb540ab0920431bf4c808d7dd66cc1057935436ea7688bd83b6942e"
+	privateKeyBytes, err := hex.DecodeString(privateKeyString)
+	if err != nil {
+		return err
+	}
+
 	privateKey := types.Ed25519PrivateKey(privateKeyBytes)
 
-	contractAddr, _ := types.ToAccountAddress(adminAddr)
+	contractAddr, err := types.ToAccountAddress(adminAddr)
+	if err != nil {
+		return err
+	}
 
-	sender, _ := types.ToAccountAddress(adminAddr)
+	sender, err := types.ToAccountAddress(adminAddr) 
+	if err != nil {
+		return err
+	}
+
 
 
 	moduleId := types.ModuleId{
@@ -66,46 +78,73 @@ func DoPairsRegister(tokenX, tokenY, network string) {
 
 	price, err := client.GetGasUnitPrice(ctx)
 	if err != nil {
+		return err
 	}
 
 	state, err := client.GetState(ctx, adminAddr)
-
 	if err != nil {
+		return err
 	}
 
 	rawUserTransaction, err := client.BuildRawUserTransaction(ctx, *sender, &payload, price, DEFAULT_MAX_GAS_AMOUNT, state.SequenceNumber)
 	if err != nil {
+		return err
 	}
+
 	fmt.Printf("\n\n rawUserTransaction is : %v\n", rawUserTransaction)
 	fmt.Printf("\n\n err is : %v\n", err)
 
 	res, err := client.SubmitTransaction(ctx, privateKey,rawUserTransaction);
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("\n hash is %#v\n\n", res)
 	fmt.Printf("\n err is %#v\n\n", err)
 
+	var loops int
+	for loops < 10 {
+		pendingTransactionInfo, err := client.GetPendingTransactionByHash(ctx, res);
+		loops ++;
+		fmt.Printf("\n pendingTransactionInfo is %#v\n\n", pendingTransactionInfo)
+		fmt.Printf("\n err is %#v\n\n", err)
+		
+		if pendingTransactionInfo.TransactionHash == "" || err != nil {
+			break
+		} 
+		time.Sleep(time.Second)
+	}
 
-	pendingTransactionInfo, err := client.GetPendingTransactionByHash(ctx, res);
-	fmt.Printf("\n pendingTransactionInfo is %#v\n\n", pendingTransactionInfo)
-	fmt.Printf("\n err is %#v\n\n", err)
+	call := Cli.ContractCall{
+		"0x0A7B8DAb322448AF454FccAfFBCbF247::Router02::pair_exists",
+		[]string{
+			tokenX, 
+			tokenY,
+		},
+		[]string{},
+	}
+	callRes, err := client.CallContract(context.Background(), call)
+	if err != nil {
+		return err;
+	}
 
+	fmt.Printf("\n callRes is %#v\n\n", callRes)
+	
+	fmt.Printf("\n callRes convert is %#v\n\n", callRes.([]interface{}))
 
-	transactionInfo, err := client.GetTransactionInfoByHash(ctx, res);
-	fmt.Printf("\ntransactionInfo is %#v\n\n", transactionInfo)
-	fmt.Printf("\n err is %#v\n\n", err)
+	if !checkCallRes(callRes.([]interface{})) {
+		return fmt.Errorf("not exist")
+	}
 
-	transaction, err := client.GetTransactionByHash(ctx, res);
-	fmt.Printf("\ntransactionInfo is %#v\n\n", transaction)
-	fmt.Printf("\n err is %#v\n\n", err)
-
+	return nil
 	
 }
+
 
 func getTypeTag(token string) *types.TypeTag__Struct {
 	tokenArray := strings.Split(token, "::")
 
 	tokenAddr, _ := types.ToAccountAddress(tokenArray[0])
-
 
 	coinType := types.StructTag{
 		Address: *tokenAddr,
@@ -116,6 +155,14 @@ func getTypeTag(token string) *types.TypeTag__Struct {
 	return &types.TypeTag__Struct{Value: coinType}
 }
 
+
+func checkCallRes(callRes []interface{}) bool { //1
+	for _, val := range callRes {
+		return val.(bool)
+	}
+
+	return false
+}
 
 
 func encode_u128_argument(arg serde.Uint128) []byte {

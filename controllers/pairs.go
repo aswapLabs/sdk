@@ -13,9 +13,14 @@ func (c *PairsController) Register() {
 	tokenX := c.GetString("token_x")
 	tokenY := c.GetString("token_y")
 	network := c.GetString("network")
-	services.DoPairsRegister(tokenX, tokenY, network)
+	err := services.DoPairsRegister(tokenX, tokenY, network)
+	var status bool
 
-	c.Data["json"] = true
+	if err == nil {
+		status = true
+	}
+
+	c.Data["json"] = status
     c.ServeJSON()
 }
 
