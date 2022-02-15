@@ -24,9 +24,8 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 	ctx := context.Background()
 
 	url := getNetworkByChainId(chainId)
-	
-	client := Cli.NewStarcoinClient(url)
 
+	client := Cli.NewStarcoinClient(url)
 
 	adminAddr := beego.AppConfig.DefaultString(
 		"admin_address", 
@@ -53,8 +52,6 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		return err
 	}
 
-
-
 	moduleId := types.ModuleId{
 		*contractAddr,
 		"Router02",
@@ -74,7 +71,6 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		Value: scriptFunction,
 	}
 
-
 	price, err := client.GetGasUnitPrice(ctx)
 	if err != nil {
 		return err
@@ -90,23 +86,15 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		return err
 	}
 
-	fmt.Printf("\n\n rawUserTransaction is : %v\n", rawUserTransaction)
-	fmt.Printf("\n\n err is : %v\n", err)
-
 	res, err := client.SubmitTransaction(ctx, privateKey,rawUserTransaction);
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("\n hash is %#v\n\n", res)
-	fmt.Printf("\n err is %#v\n\n", err)
-
 	var loops int
 	for loops < 10 {
 		pendingTransactionInfo, err := client.GetPendingTransactionByHash(ctx, res);
 		loops ++;
-		fmt.Printf("\n pendingTransactionInfo is %#v\n\n", pendingTransactionInfo)
-		fmt.Printf("\n err is %#v\n\n", err)
 		
 		if pendingTransactionInfo.TransactionHash == "" || err != nil {
 			break
@@ -115,21 +103,18 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 	}
 
 	call := Cli.ContractCall{
-		"0x0A7B8DAb322448AF454FccAfFBCbF247::Router02::pair_exists",
+		adminAddr + "::Router02::pair_exists",
 		[]string{
 			tokenX, 
 			tokenY,
 		},
 		[]string{},
 	}
+
 	callRes, err := client.CallContract(context.Background(), call)
 	if err != nil {
 		return err;
 	}
-
-	fmt.Printf("\n callRes is %#v\n\n", callRes)
-	
-	fmt.Printf("\n callRes convert is %#v\n\n", callRes.([]interface{}))
 
 	if !checkCallRes(callRes.([]interface{})) {
 		return fmt.Errorf("not exist")

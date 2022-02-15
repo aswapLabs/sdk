@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/json"
 	beego "github.com/beego/beego/v2/server/web"
 	services "aswap-go/services"
 )
@@ -10,31 +10,43 @@ type PairsController struct {
 	beego.Controller
 }
 
+type ParisParams struct {
+	TokenA string `json:"tokenA"`
+	TokenB string `json:"tokenB"`
+	ChainId int `json:"chainId"`
+}
+
 type Result struct {
 	Status int `json:"status"`
 	Data string `json:"data"`
 }
 
 func (c *PairsController) Register() {
-	tokenA := c.GetString("tokenA")
-	tokenB := c.GetString("tokenB")
-	chainId, _ := c.GetInt("chainId")
+
+	param := ParisParams{}
 
 	res := Result{
 		Status: 0,
 		Data: "internal error",
 	}
+	
+	err := json.Unmarshal(c.Ctx.Input.CopyBody(1<<32), &param)
 
-	if tokenA == tokenB {
+	if err != nil {
+		res.Data = "Params Errror"	
+		c.Data["json"] = res
+    	c.ServeJSON()
+    	return	
+	} 
+
+	if param.TokenA == param.TokenB {
 		res.Data = "Token Can't Be Equal"	
 		c.Data["json"] = res
     	c.ServeJSON()
     	return	
 	}
 
-	err := services.DoPairsRegister(tokenA, tokenB, chainId)
-
-	fmt.Printf("\n the err is %v\n", err)
+	err = services.DoPairsRegister(param.TokenA, param.TokenB, param.ChainId)
 
 	if err == nil {
 		res.Data = "success"
