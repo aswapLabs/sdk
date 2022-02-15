@@ -17,14 +17,13 @@ import (
 
 const DEFAULT_MAX_GAS_AMOUNT = 10000000
 
-func DoPairsRegister(tokenX, tokenY, network string) error {
+
+
+func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 
 	ctx := context.Background()
 
-	url := beego.AppConfig.DefaultString(
-		network + "::rpc", 
-		"https://barnard-seed.starcoin.org",
-	) 
+	url := getNetworkByChainId(chainId)
 	
 	client := Cli.NewStarcoinClient(url)
 
@@ -138,6 +137,31 @@ func DoPairsRegister(tokenX, tokenY, network string) error {
 
 	return nil
 	
+}
+
+// 251 Barnard
+// 254 Local
+// 1 Main
+func getNetworkByChainId(chainId int) string {
+
+	var network string;
+
+	switch chainId {
+	case 1 :
+		network = "Main"
+	case 251: 
+		network = "Barnard"
+	case 254:
+		network = "Local"
+	default:
+		network = "Barnard"
+	}
+
+	url := beego.AppConfig.DefaultString(
+		network + "::rpc", 
+		"https://barnard-seed.starcoin.org",
+	) 
+	return url
 }
 
 
