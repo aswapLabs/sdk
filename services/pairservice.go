@@ -31,6 +31,11 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		"admin_address", 
 		"0x9bB5ace47E68616f64229B119f4c5D95",
 	)
+
+	b, _ := PairExists(tokenX, tokenY, adminAddr, ctx, client)
+	if b == true {
+		return nil
+	}
 	
 	
 
@@ -91,6 +96,9 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		return err
 	}
 
+	fmt.Printf("\n res is %v\n", res)
+	fmt.Printf("\n err is %v\n", err)
+
 	var loops int
 	for loops < 10 {
 		pendingTransactionInfo, err := client.GetPendingTransactionByHash(ctx, res);
@@ -102,6 +110,38 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		time.Sleep(time.Second)
 	}
 
+	// call := Cli.ContractCall{
+	// 	adminAddr + "::Router02::pair_exists",
+	// 	[]string{
+	// 		tokenX, 
+	// 		tokenY,
+	// 	},
+	// 	[]string{},
+	// }
+
+	// callRes, err := client.CallContract(context.Background(), call)
+	// if err != nil {
+	// 	return err;
+	// }
+
+	// if !checkCallRes(callRes.([]interface{})) {
+	// 	return fmt.Errorf("not exist")
+	// }
+
+	b, err = PairExists(tokenX, tokenY, adminAddr, ctx, client)
+	if b == false || err != nil {
+		return fmt.Errorf("not exist")
+	}
+
+	return nil
+	
+}
+
+func PairExists(
+	tokenX, tokenY, adminAddr string, 
+	ctx context.Context,
+	client Cli.StarcoinClient,
+) (bool, error) {
 	call := Cli.ContractCall{
 		adminAddr + "::Router02::pair_exists",
 		[]string{
@@ -111,16 +151,15 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		[]string{},
 	}
 
-	callRes, err := client.CallContract(context.Background(), call)
+	callRes, err := client.CallContract(ctx, call)
 	if err != nil {
-		return err;
+		return false, err;
 	}
 
 	if !checkCallRes(callRes.([]interface{})) {
-		return fmt.Errorf("not exist")
+		return false, fmt.Errorf("not exist")
 	}
-
-	return nil
+	return true, nil
 	
 }
 
