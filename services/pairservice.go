@@ -29,7 +29,7 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 
 	adminAddr := beego.AppConfig.DefaultString(
 		"admin_address", 
-		"0x9bB5ace47E68616f64229B119f4c5D95",
+		"0x580D0A84badec57956Fff0ddEdffa386",
 	)
 
 	b, _ := PairExists(tokenX, tokenY, adminAddr, ctx, client)
