@@ -33,6 +33,7 @@ func (c *PairsController) Register() {
 
 	err := json.Unmarshal(c.Ctx.Input.CopyBody(1<<32), &param)
 
+
 	if err != nil {
 		res.Data = "Params Errror"	
 		c.Data["json"] = res

@@ -96,41 +96,24 @@ func DoPairsRegister(tokenX, tokenY string, chainId int) error {
 		return err
 	}
 
-	fmt.Printf("\n res is %v\n", res)
-	fmt.Printf("\n err is %v\n", err)
-
 	var loops int
-	for loops < 10 {
+	for loops < 60 {
 		pendingTransactionInfo, err := client.GetPendingTransactionByHash(ctx, res);
 		loops ++;
 		
 		if pendingTransactionInfo.TransactionHash == "" || err != nil {
-			break
+			txInfo, _ := client.GetTransactionInfoByHash(ctx, res)
+			if(txInfo.TransactionHash == res) {
+				break
+			}
 		} 
+		
 		time.Sleep(time.Second)
 	}
 
-	// call := Cli.ContractCall{
-	// 	adminAddr + "::Router02::pair_exists",
-	// 	[]string{
-	// 		tokenX, 
-	// 		tokenY,
-	// 	},
-	// 	[]string{},
-	// }
-
-	// callRes, err := client.CallContract(context.Background(), call)
-	// if err != nil {
-	// 	return err;
-	// }
-
-	// if !checkCallRes(callRes.([]interface{})) {
-	// 	return fmt.Errorf("not exist")
-	// }
-
 	b, err = PairExists(tokenX, tokenY, adminAddr, ctx, client)
 	if b == false || err != nil {
-		return fmt.Errorf("not exist")
+		return fmt.Errorf("not exist after")
 	}
 
 	return nil
